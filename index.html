@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Gulus or Norls</title>
+  <script src="https://unpkg.com/jspsych@8.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-video-keyboard-response@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-audio-keyboard-response@2.1.0"></script>
+
+  <!-- A custom plugin that adds a green box around the button when it's clicked -->
+  <script src="script/jspsych/plugin-html-button-response-green-box.js"></script>
+  <!-- A custom plugin that ends the trial when the audio is finished playing -->
+  <script src="script/jspsych/plugin-html-end-trial-on-audio-finish.js"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-image-button-response@2.0.0"></script>
+
+  <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
+  <link href="https://unpkg.com/jspsych@8.0.0/css/jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body></body>
+<!-- always init JsPsych first -->
+<script src="script/init.js"></script>
+
+<!-- load utils -->
+<script src="script/utils/media.js"></script>
+<script src="script/utils/stimulus.js"></script>
+
+<!-- load trials -->
+<script src="script/instruction_trial.js"></script>
+<script src="script/exposure_trial.js"></script>
+<script src="script/practice_trial.js"></script>
+<script src="script/attention_trial.js"></script>
+<script src="script/break_trial.js"></script>
+<script src="script/test_trial.js"></script>
+<script src="script/ending_trial.js"></script>
+
+<!-- load procedures -->
+<script src="script/procedures/introduction.js"></script>
+<script src="script/procedures/instruction_exposure_ready.js"></script>
+<script src="script/procedures/break.js"></script>
+<script src="script/procedures/attention.js"></script>
+<script src="script/procedures/exposure.js"></script>
+<script src="script/procedures/practice.js"></script>
+<script src="script/procedures/exposure_practice.js"></script>
+<script src="script/procedures/instruction_test.js"></script>
+<script src="script/procedures/instruction_test_ready.js"></script>
+<script src="script/procedures/test.js"></script>
+<!-- <script src="script/procedures/test_practice.js"></script> -->
+<script src="script/procedures/ending.js"></script>
+
+<!-- construct experiment -->
+<script>
+  var timeline = [];
+  var instructions = {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: "Welcome to the experiment!",
+    choices: ["Begin"]
+  };
+
+  // function createStimulus(audioFile, imageFile) {
+  //   return `
+  //     <img src="${imageFile}" style="max-width: 100%; max-height: 100%;">
+  //     <audio autoplay>
+  //       <source src="${audioFile}" type="audio/wav">
+  //       Your browser does not support the audio element.
+  //     </audio>
+  //   `;
+  // };
+
+  function createStimulus(audioFile, imageFile) {
+    return `
+      <div style="display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; background: black;">
+        <div style="width: 1180px; height: 663.75px; position: relative; overflow: hidden;">
+          <img src="${imageFile}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <audio autoplay>
+          <source src="${audioFile}" type="audio/wav">
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+    `;
+}
+
+  // Helper function to get the audio and image set from timeline_variables
+  function getAudioImageSet(index, procedure) {
+    // Ensure index is within bounds of the timeline_variables array
+    if (index >= 0 && index < procedure.timeline_variables.length) {
+      const set = procedure.timeline_variables[index];
+      const audio = set.audio;
+      const image = "image/" + set.image;  // Prepend 'image/' to the image path
+      return { audio, image };
+    } else {
+      console.error("Index out of bounds");
+      return null;
+    }
+  };
+
+  let guluAudioImageSet = getAudioImageSet(0, gulu_introduction_trial_procedure);
+  var gulu_introduction_trial_procedure_function = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: function() {
+      return createStimulus(guluAudioImageSet.audio, guluAudioImageSet.image);
+    },
+    choices: ['Enter'],
+    response_ends_trial: true,
+  };
+
+  // use + change the code below for the attention check trials and test trials
+  let norlAudioImageSet = getAudioImageSet(0, norl_introduction_trial_procedure);
+  var norl_introduction_trial_procedure_function = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: function() {
+      return createStimulus(norlAudioImageSet.audio, norlAudioImageSet.image);
+    },
+    choices: ['Enter'],
+    response_ends_trial: true,
+  };
+
+  let introAudioImageSet = getAudioImageSet(0, introduction_trial_selection);
+  // Define a conditional trial to branch based on user input
+  var introduction_trial_selection_function = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: function() {
+      return createStimulus(introAudioImageSet.audio, introAudioImageSet.image);
+    },
+    choices: ['g', 'n'],
+    response_ends_trial: true,
+    on_finish: function(data) {
+      console.log("User response: " + data.response); // Log the response
+    }
+  };
+
+  // Conditional branching based on user input
+  var gulu_or_norl_branching = {
+    timeline: [gulu_introduction_trial_procedure_function],
+    conditional_function: function() {
+      // Check if 'g' was pressed
+      var last_response = jsPsych.data.getLastTrialData().values()[0].response;
+      return last_response === 'g'; // Return true for Gulu
+    }
+  };
+
+  var norl_branching = {
+    timeline: [norl_introduction_trial_procedure_function],
+    conditional_function: function() {
+      // Check if 'n' was pressed
+      var last_response = jsPsych.data.getLastTrialData().values()[0].response;
+      return last_response === 'n'; // Return true for Norl
+    }
+  };
+
+  // preload resolves image flickering
+  var preload = {
+    type: jsPsychPreload,
+    // Auto preload doesn't work since it only fetches plugin parameter files, not files within html and parameter functions.
+    // See https://www.jspsych.org/v8/reference/jspsych-pluginAPI/#getautopreloadlist for details.  
+    // auto_preload: true,
+    images:
+      [].concat(
+        // Introduction trial 
+       introduction_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+       introduction_trial_selection.timeline_variables.map(item => `image/${item.image}`),
+       norl_introduction_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+       gulu_introduction_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+       introduction_trial_procedure1.timeline_variables.map(item => `image/${item.image}`),
+       introduction_trial_procedure2.timeline_variables.map(item => `image/${item.image}`),
+       introduction_trial_procedure3.timeline_variables.map(item => `image/${item.image}`),
+
+    //     // Exposure practice trial
+        exposure_practice_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+        exposure_practice_trial_procedure.timeline_variables.map(item => `image/${item.wrong_button_image}`),
+        exposure_practice_trial_procedure.timeline_variables.map(item => `image/${item.correct_button_image}`),
+
+    //     // Instruction exposure ready trial
+        instruction_exposure_ready_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+
+        // Exposure trials
+       exposure_procedure1_1.timeline_variables.map(item => `image/${item.image}`),
+        exposure_procedure1_2.timeline_variables.map(item => `image/${item.image}`),
+        exposure_procedure1_3.timeline_variables.map(item => `image/${item.image}`),
+        exposure_procedure1_4.timeline_variables.map(item => `image/${item.image}`),
+        exposure_procedure2_1.timeline_variables.map(item => `image/${item.image}`),
+        exposure_procedure2_2.timeline_variables.map(item => `image/${item.image}`),
+        exposure_procedure2_3.timeline_variables.map(item => `image/${item.image}`),
+        exposure_procedure2_4.timeline_variables.map(item => `image/${item.image}`),
+
+        practice1.timeline_variables.map(item => `image/${item.image}`),
+
+
+        // Attention trials
+        attention_check_procedure1_1.timeline_variables.map(item => `image/${item.image}`),
+        attention_check_procedure1_1.timeline_variables.map(item => `image/${item.wrong_button_image}`),
+        attention_check_procedure1_1.timeline_variables.map(item => `image/${item.correct_button_image}`),
+        attention_check_procedure1_2.timeline_variables.map(item => `image/${item.image}`),
+        attention_check_procedure1_2.timeline_variables.map(item => `image/${item.wrong_button_image}`),
+        attention_check_procedure1_2.timeline_variables.map(item => `image/${item.correct_button_image}`),
+        attention_check_procedure1_3.timeline_variables.map(item => `image/${item.image}`),
+        attention_check_procedure1_3.timeline_variables.map(item => `image/${item.wrong_button_image}`),
+        attention_check_procedure1_3.timeline_variables.map(item => `image/${item.correct_button_image}`),
+        attention_check_procedure1_4.timeline_variables.map(item => `image/${item.image}`),
+        attention_check_procedure1_4.timeline_variables.map(item => `image/${item.wrong_button_image}`),
+        attention_check_procedure1_4.timeline_variables.map(item => `image/${item.correct_button_image}`),
+        attention_check_procedure2_1.timeline_variables.map(item => `image/${item.image}`),
+        attention_check_procedure2_1.timeline_variables.map(item => `image/${item.wrong_button_image}`),
+        attention_check_procedure2_1.timeline_variables.map(item => `image/${item.correct_button_image}`),
+        attention_check_procedure2_2.timeline_variables.map(item => `image/${item.image}`),
+        attention_check_procedure2_2.timeline_variables.map(item => `image/${item.wrong_button_image}`),
+        attention_check_procedure2_2.timeline_variables.map(item => `image/${item.correct_button_image}`),
+        attention_check_procedure2_3.timeline_variables.map(item => `image/${item.image}`),
+        attention_check_procedure2_3.timeline_variables.map(item => `image/${item.wrong_button_image}`),
+        attention_check_procedure2_3.timeline_variables.map(item => `image/${item.correct_button_image}`),
+        attention_check_procedure2_4.timeline_variables.map(item => `image/${item.image}`),
+        attention_check_procedure2_4.timeline_variables.map(item => `image/${item.wrong_button_image}`),
+        attention_check_procedure2_4.timeline_variables.map(item => `image/${item.correct_button_image}`),
+ 
+
+        // Break trials
+        break_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+        // break_trial_procedure2.timeline_variables.map(item => `image/${item.image}`),
+        // break_trial_procedure3.timeline_variables.map(item => `image/${item.image}`),
+        // break_trial_procedure4.timeline_variables.map(item => `image/${item.image}`),
+
+    //     // Instruction test trials
+    //     instruction_test_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+
+    //     // // Test practice listen trials
+    //     // test_practice_procedure_1_listen.timeline_variables.map(item => `image/${item.image}`),
+    //     // test_practice_procedure_2_listen.timeline_variables.map(item => `image/${item.image}`),
+    //     // test_practice_procedure_3_listen.timeline_variables.map(item => `image/${item.image}`),
+    //     // test_practice_procedure_4_listen.timeline_variables.map(item => `image/${item.image}`),
+
+    //     // // Test practice trials
+    //     // test_practice_procedure_1.timeline_variables.map(item => `image/${item.image}`),
+    //     // test_practice_procedure_1.timeline_variables.map(item => `image/${item.left}`),
+    //     // test_practice_procedure_1.timeline_variables.map(item => `image/${item.right}`),
+    //     // test_practice_procedure_2.timeline_variables.map(item => `image/${item.image}`),
+    //     // test_practice_procedure_2.timeline_variables.map(item => `image/${item.left}`),
+    //     // test_practice_procedure_2.timeline_variables.map(item => `image/${item.right}`),
+    //     // test_practice_procedure_3.timeline_variables.map(item => `image/${item.image}`),
+    //     // test_practice_procedure_3.timeline_variables.map(item => `image/${item.left}`),
+    //     // test_practice_procedure_3.timeline_variables.map(item => `image/${item.right}`),
+    //     // test_practice_procedure_4.timeline_variables.map(item => `image/${item.image}`),
+    //     // test_practice_procedure_4.timeline_variables.map(item => `image/${item.left}`),
+    //     // test_practice_procedure_4.timeline_variables.map(item => `image/${item.right}`),
+
+    //     // // Instruction test ready trials
+    //     // instruction_test_ready_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+
+    //     // // Don't touch screen prompt trials
+    //     // dont_touch_screen_prompt_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+
+    //     // Test listen trials
+    //     test_procedure_1_listen.timeline_variables.map(item => `image/${item.image}`),
+    //     test_procedure_2_listen.timeline_variables.map(item => `image/${item.image}`),
+    //     test_procedure_3_listen.timeline_variables.map(item => `image/${item.image}`),
+    //     test_procedure_4_listen.timeline_variables.map(item => `image/${item.image}`),
+       
+    //     // Ending trial
+    //     ending_trial_procedure.timeline_variables.map(item => `image/${item.image}`),
+
+      []),
+
+    video:
+      [].concat(
+        // Introduction trials
+    //     introduction_trial_procedure1.timeline_variables.map(item => item.video[0]),
+    //     introduction_trial_procedure2.timeline_variables.map(item => item.video[0]),
+    //     introduction_trial_procedure3.timeline_variables.map(item => item.video[0]),
+
+    //     // Exposure trials
+           exposure_procedure1_1.timeline_variables.map(item => `video/${item.video}`),
+        exposure_procedure1_2.timeline_variables.map(item => `video/${item.video}`),
+        exposure_procedure1_3.timeline_variables.map(item => `video/${item.video}`),
+        exposure_procedure1_4.timeline_variables.map(item => `video/${item.video}`),
+        exposure_procedure2_1.timeline_variables.map(item => `video/${item.video}`),
+        exposure_procedure2_2.timeline_variables.map(item => `video/${item.video}`),
+        exposure_procedure2_3.timeline_variables.map(item => `video/${item.video}`),
+        exposure_procedure2_4.timeline_variables.map(item => `video/${item.video}`),
+    //     // Practice trials
+        practice1.timeline_variables.map(item => `video/${item.video}`),
+
+        []),
+
+  audio:
+     [].concat(
+    //     // Introduction trial
+     introduction_trial_procedure.timeline_variables.map(item => `${item.audio}`),
+     introduction_trial_selection.timeline_variables.map(item => `${item.audio}`),
+     norl_introduction_trial_procedure.timeline_variables.map(item => `${item.audio}`),
+     gulu_introduction_trial_procedure.timeline_variables.map(item => `${item.audio}`),
+     introduction_trial_procedure1.timeline_variables.map(item => `${item.audio}`),
+     introduction_trial_procedure2.timeline_variables.map(item => `${item.audio}`),
+     introduction_trial_procedure3.timeline_variables.map(item => `${item.audio}`),
+
+    //     // Exposure practice trial
+    //     exposure_practice_trial_procedure.timeline_variables.map(item => `wav/${item.audio}`),
+
+    //     // Instruction exposure ready trial
+    //     instruction_exposure_ready_trial_procedure.timeline_variables.map(item => `${item.audio}`),
+
+    //     // Exposure trials
+        exposure_procedure1_1.timeline_variables.map(item => `wav/${item.audio}`),
+        exposure_procedure1_2.timeline_variables.map(item => `wav/${item.audio}`),
+        exposure_procedure1_3.timeline_variables.map(item => `wav/${item.audio}`),
+        exposure_procedure1_4.timeline_variables.map(item => `wav/${item.audio}`),
+        exposure_procedure2_1.timeline_variables.map(item => `wav/${item.audio}`),
+        exposure_procedure2_2.timeline_variables.map(item => `wav/${item.audio}`),
+        exposure_procedure2_3.timeline_variables.map(item => `wav/${item.audio}`),
+        exposure_procedure2_4.timeline_variables.map(item => `wav/${item.audio}`),
+        // exposure_procedure3_1.timeline_variables.map(item => `wav/${item.audio}`),
+        // exposure_procedure3_2.timeline_variables.map(item => `wav/${item.audio}`),
+        // exposure_procedure3_3.timeline_variables.map(item => `wav/${item.audio}`),
+        // exposure_procedure3_4.timeline_variables.map(item => `wav/${item.audio}`),
+        // exposure_procedure4_1.timeline_variables.map(item => `wav/${item.audio}`),
+        // exposure_procedure4_2.timeline_variables.map(item => `wav/${item.audio}`),
+        // exposure_procedure4_3.timeline_variables.map(item => `wav/${item.audio}`),
+        // exposure_procedure4_4.timeline_variables.map(item => `wav/${item.audio}`),
+
+    // Practice trials
+            practice1.timeline_variables.map(item => `wav/${item.audio}`),
+
+
+        // Attention trials
+        attention_check_procedure1_1.timeline_variables.map(item => `wav/${item.audio}`),
+        attention_check_procedure1_2.timeline_variables.map(item => `wav/${item.audio}`),
+        attention_check_procedure1_3.timeline_variables.map(item => `wav/${item.audio}`),
+        attention_check_procedure1_4.timeline_variables.map(item => `wav/${item.audio}`),
+        attention_check_procedure2_1.timeline_variables.map(item => `wav/${item.audio}`),
+        attention_check_procedure2_2.timeline_variables.map(item => `wav/${item.audio}`),
+        attention_check_procedure2_3.timeline_variables.map(item => `wav/${item.audio}`),
+        attention_check_procedure2_4.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // attention_check_procedure9.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // attention_check_procedure10.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // attention_check_procedure11.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // attention_check_procedure12.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // attention_check_procedure13.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // attention_check_procedure14.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // attention_check_procedure15.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // attention_check_procedure16.timeline_variables.map(item => `wav/${item.audio}`),
+
+    //     // Break trials
+    //     // break_trial_procedure1.timeline_variables.map(item => `${item.audio}`),
+    //     // break_trial_procedure2.timeline_variables.map(item => `${item.audio}`),
+    //     // break_trial_procedure3.timeline_variables.map(item => `${item.audio}`),
+    //     // break_trial_procedure4.timeline_variables.map(item => `${item.audio}`),
+
+    //     // Instruction test trials
+    //     instruction_test_trial_procedure.timeline_variables.map(item => `${item.audio}`),
+
+    //     // // Test practice listen trials
+    //     // test_practice_procedure_1_listen.timeline_variables.map(item => `${item.audio}`),
+    //     // test_practice_procedure_2_listen.timeline_variables.map(item => `${item.audio}`),
+    //     // test_practice_procedure_3_listen.timeline_variables.map(item => `${item.audio}`),
+    //     // test_practice_procedure_4_listen.timeline_variables.map(item => `${item.audio}`),
+
+    //     // // Test practice trials
+    //     // test_practice_procedure_1.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // test_practice_procedure_2.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // test_practice_procedure_3.timeline_variables.map(item => `wav/${item.audio}`),
+    //     // test_practice_procedure_4.timeline_variables.map(item => `wav/${item.audio}`),
+
+    //     // // Instruction test ready trials
+    //     // instruction_test_ready_trial_procedure.timeline_variables.map(item => `${item.audio}`),
+
+    //     // // Don't touch screen prompt trials
+    //     // dont_touch_screen_prompt_trial_procedure.timeline_variables.map(item => `${item.audio}`),
+
+    //     // // Test listen trials
+        // test_procedure_1_listen.timeline_variables.map(item => `${item.audio}`),
+        // test_procedure_2_listen.timeline_variables.map(item => `${item.audio}`),
+        // test_procedure_3_listen.timeline_variables.map(item => `${item.audio}`),
+        // test_procedure_4_listen.timeline_variables.map(item => `${item.audio}`),
+       
+
+    //     // Ending trial
+        ending_trial_procedure.timeline_variables.map(item => `${item.audio}`),
+
+        []),
+  };
+  
+  timeline.push(preload);
+  timeline.push(instructions);
+  timeline.push(introduction_trial_procedure);
+  timeline.push(introduction_trial_selection_function);
+  timeline.push(gulu_or_norl_branching); // Add Gulu branching logic
+  timeline.push(norl_branching);        // Add Norl branching logic
+  timeline.push(introduction_trial_procedure1);
+  // timeline.push(exposure_procedure1_1);
+  // timeline.push(attention_check_procedure1_1);
+  // timeline.push(exposure_procedure1_2);
+  // timeline.push(attention_check_procedure1_2);
+  // timeline.push(break_trial_procedure);
+  // timeline.push(exposure_procedure1_3);
+  // timeline.push(attention_check_procedure1_3);
+  // timeline.push(exposure_procedure1_4);
+  // timeline.push(attention_check_procedure1_4);
+  // timeline.push(break_trial_procedure);
+  // timeline.push(exposure_procedure2_1);
+  // timeline.push(attention_check_procedure2_1);
+  // timeline.push(exposure_procedure2_2);
+  // timeline.push(attention_check_procedure2_2);
+  // timeline.push(break_trial_procedure);
+  // timeline.push(exposure_procedure2_3);
+  // timeline.push(attention_check_procedure2_3);
+  // timeline.push(exposure_procedure2_4);
+  // timeline.push(attention_check_procedure2_4);
+  // timeline.push(break_trial_procedure);
+
+  // timeline.push(introduction_trial_procedure2);
+  // timeline.push(practice1);
+  // timeline.push(introduction_trial_procedure3);
+  // timeline.push(test_procedure_1_listen);
+  // timeline.push(test_procedure_2_listen);
+  // timeline.push(break_trial_procedure);
+  // timeline.push(test_procedure_3_listen);
+  // timeline.push(test_procedure_4_listen);
+  // timeline.push(break_trial_procedure);
+  // timeline.push(ending_trial_procedure);
+
+
+  // const subject_id = jsPsych.randomization.randomID(10);
+  // const filename = `${subject_id}.csv`;
+
+  // const save_data = {
+  //   type: jsPsychPipe,
+  //   action: "save",
+  //   experiment_id: "JE55JGOL9Z76",
+  //   filename: filename,
+  //   data_string: () => jsPsych.data.get().csv()
+  // };
+  // timeline.push(save_data);
+
+  jsPsych.run(timeline);
+
+
+
+</script>
+
+</html>
