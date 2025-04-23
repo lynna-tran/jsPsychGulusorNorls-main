@@ -28,7 +28,7 @@ function generateAttentionCheckStimulus(image, image_position, wrong_button_imag
     return `<div>
                 <img src="${image}" style="width:350px; height:550px;position:absolute; left:${image_position.left}px; top: ${image_position.top}px">
                 <button id="${WRONG_BUTTON_ELEMENT_ID}" class="jspsych-btn" style="position:absolute; left:${wrong_button_position.left}px; top: ${wrong_button_position.top}px">
-                        <img src="${wrong_button_image}" style="max-width:241px; max-height:352px;">
+                    <img src="${wrong_button_image}" style="width:241px; height:352px;">
                 </button>
             </div>`;
 }
