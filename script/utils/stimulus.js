@@ -78,10 +78,10 @@ function generatePracticeStimulus(image, image_position, wrong_button_image, wro
  */
 function generateExposureStimulusNew(video, video_position, image, image_position) {
     return `<div>
-               <video id="${VIDEO_ELEMENT_ID}" style="width:540px; height:540px; position:absolute; left:${video_position.left}px; top:${video_position.top}px;">
+               <video id="${VIDEO_ELEMENT_ID}" style="width:810px; height:810px; position:absolute; left:${video_position.left}px; top:${video_position.top}px;">
                         <source src="${video}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
-                <img src="${image}" style="width:720px; height:405px;position:absolute; left:${image_position.left}px; top: ${image_position.top}px">
+                <img src="${image}" style="width:576px; height:324px;position:absolute; left:${image_position.left}px; top: ${image_position.top}px">
             </div>`;
 }
 //add audio into this function -> can take this code from index study1//

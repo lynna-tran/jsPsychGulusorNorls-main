@@ -10,23 +10,23 @@
 // };
 const EXPOSURE_IMAGE_POSITIONS = {
     'CENTER': {
-        left: 380,
+        left: 420,
         top: 200
     }
 };
 
 const VIDEO_POSITIONS = {
     'LEFT': {
-        left: 150,
-        top: 150
+        left: 100,
+        top: 0
     },
     'CENTER': {
         left: 95,
-        top: 150
+        top: 0
     },
     'RIGHT': {
-        left: 850,
-        top: 150
+        left: 500,
+        top: 0
     }
 };
 
