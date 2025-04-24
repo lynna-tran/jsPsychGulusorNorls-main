@@ -17,7 +17,7 @@ const EXPOSURE_IMAGE_POSITIONS = {
 
 const VIDEO_POSITIONS = {
     'LEFT': {
-        left: 100,
+        left: 150,
         top: 0
     },
     'CENTER': {
@@ -25,7 +25,7 @@ const VIDEO_POSITIONS = {
         top: 0
     },
     'RIGHT': {
-        left: 500,
+        left: 550,
         top: 0
     }
 };
