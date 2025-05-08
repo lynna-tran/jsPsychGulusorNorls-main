@@ -59,13 +59,13 @@ function generateFullScreenImageStimulus(image) {
 function generatePracticeStimulus(image, image_position, wrong_button_image, wrong_button_position, video, video_position) {//delete video and make it image
     return `<div>
                 
-                <button id="${WRONG_BUTTON_ELEMENT_ID}" class="jspsych-btn" style="position:absolute; left:${wrong_button_position.left}px; top: ${wrong_button_position.top}px">
-                        <img src="${wrong_button_image}" style="max-width:100px; max-height:100px;">
-                </button>
                 <video id="${VIDEO_ELEMENT_ID}" style="width:675px; height:675px; position:absolute; left:${video_position.left}px; top:${video_position.top}px;">
                         <source src="${video}" type="video/mp4"> Your browser does not support the video tag.
                 </video>
                 <img src="${image}" style="width:540px; height:303.75px;position:absolute; left:${image_position.left}px; top: ${image_position.top}px">
+                <button id="${WRONG_BUTTON_ELEMENT_ID}" class="jspsych-btn" style="position:absolute; left:${wrong_button_position.left}px; top: ${wrong_button_position.top}px">
+                <img src="${wrong_button_image}" style="max-width:100px; max-height:100px;">
+                </button>
             </div>`;
 }
 /**
